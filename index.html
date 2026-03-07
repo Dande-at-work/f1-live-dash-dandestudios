@@ -3,128 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F1 Command Center</title>
+    <title>F1 Command Center 2026</title>
     <style>
         :root { --f1-red: #e10600; --dark-bg: #0b0b12; --card-bg: #1f1f27; --text: #fff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--dark-bg); color: var(--text); margin: 0; padding: 0; }
         
-        /* Mobile App Feel */
-        header { background: #000; padding: 15px; border-bottom: 2px solid var(--f1-red); display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .dashboard { display: grid; gap: 10px; padding: 10px; grid-template-columns: 1fr; }
-        @media (min-width: 1024px) { .dashboard { grid-template-columns: 2fr 1fr; } }
+        /* Mobile App Header */
+        header { background: #000; padding: 15px; border-bottom: 2px solid var(--f1-red); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 900; letter-spacing: -1px; font-size: 1.2rem; }
+        #mode-badge { font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; background: var(--f1-red); color: white; font-weight: bold; }
+        .weather { font-size: 0.7rem; color: #aaa; text-align: right; }
 
         /* News Ticker */
         #news-ticker { background: #15151e; padding: 8px; font-size: 0.8rem; border-bottom: 1px solid #333; overflow: hidden; white-space: nowrap; }
-        .ticker-content { display: inline-block; animation: scroll 30s linear infinite; }
-        @keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+        .ticker-content { display: inline-block; animation: scroll 25s linear infinite; }
+        @keyframes scroll { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
 
-        /* Components */
+        /* Layout */
+        .dashboard { display: grid; gap: 10px; padding: 10px; grid-template-columns: 1fr; }
+        @media (min-width: 1024px) { .dashboard { grid-template-columns: 2fr 1fr; } }
+
+        /* Cards & Map */
         .card { background: var(--card-bg); border-radius: 10px; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2 { font-size: 0.75rem; text-transform: uppercase; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        h2 { font-size: 0.75rem; text-transform: uppercase; color: #888; margin-top: 0; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
         h2::before { content: ''; width: 3px; height: 12px; background: var(--f1-red); display: inline-block; }
+        #map-box { height: 300px; background: #000; border-radius: 8px; position: relative; width: 100%; }
+        canvas { width: 100%; height: 100%; touch-action: none; }
 
-        /* Track Map with Orientation */
-        #map-box { height: 300px; background: #000; border-radius: 8px; position: relative; }
-        canvas { width: 100%; height: 100%; }
-
-        /* Modern Table */
+        /* Timing Tower */
+        .table-wrapper { max-height: 400px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         tr { border-bottom: 1px solid #2d2d39; }
-        td { padding: 12px 5px; }
+        td, th { padding: 10px 5px; text-align: left; }
+        th { color: #666; font-size: 0.7rem; position: sticky; top: 0; background: var(--card-bg); z-index: 10; }
         .team-indicator { width: 4px; height: 20px; border-radius: 2px; }
-        .pos { font-weight: 800; color: #555; width: 25px; }
-        
-        select { width: 100%; padding: 12px; background: #2a2a32; color: #fff; border: 1px solid #444; border-radius: 8px; margin-top: 5px; }
+        .pos { font-weight: 800; color: #888; width: 25px; }
+
+        /* Inputs */
+        select { width: 100%; padding: 12px; background: #2a2a32; color: #fff; border: 1px solid #444; border-radius: 8px; margin-top: 5px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900; letter-spacing: -1px;">F1<span style="font-weight: 100; color: var(--f1-red);">LIVE</span></div>
-    <div id="weather" style="font-size: 0.7rem; text-align: right; color: #aaa;">
-        TRACK: <span id="temp" style="color:white">--°C</span> | <span id="rain" style="color:cyan">DRY</span>
+    <div class="logo">F1<span style="font-weight: 100; color: var(--f1-red);">DASH</span> <span id="mode-badge">🔴 LIVE</span></div>
+    <div class="weather">
+        TRACK: <span id="temp" style="color:white">--°C</span> | <span id="rain" style="color:cyan">--</span>
     </div>
 </header>
 
 <div id="news-ticker">
-    <div class="ticker-content" id="news-items">Loading latest F1 news from the paddock...</div>
+    <div class="ticker-content">RUSSELL TAKES POLE • NEW 2026 REGS CAUSING PADDOCK DEBATE • HAMILTON PUSHING HARD IN THE FERRARI</div>
 </div>
 
 <div class="dashboard">
     <div class="card">
-        <h2>Live Circuit Tracker</h2>
+        <h2>Circuit Tracker</h2>
         <div id="map-box"><canvas id="trackMap"></canvas></div>
     </div>
 
     <div class="card">
         <h2>Timing Tower</h2>
-        <table id="timing-tower">
-            <thead><tr style="color:#666; font-size: 0.7rem;"><th>POS</th><th>DRIVER</th><th>GAP/STATUS</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-wrapper">
+            <table id="timing-tower">
+                <thead><tr><th>POS</th><th>DRIVER</th><th>STATUS/GAP</th></tr></thead>
+                <tbody><tr><td colspan="3" style="text-align:center;">Loading Data...</td></tr></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card" style="grid-column: 1 / -1;">
         <h2>Session Archive (2026)</h2>
         <select id="archive" onchange="loadHistorical(this.value)">
-            <option value="">Select a previous session...</option>
+            <option value="">🟢 Switch back to LIVE Mode</option>
         </select>
     </div>
 </div>
 
 <script>
     let driverMap = {};
+    let liveInterval = null; // Stores the timer so we can stop it
     const canvas = document.getElementById('trackMap');
     const ctx = canvas.getContext('2d');
 
+    // 1. INITIALIZE EVERYTHING
     async function init() {
-        // 1. Get Driver IDs, Colors, and Names
-        const dRes = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
-        const dData = await dRes.json();
-        dData.forEach(d => {
-            driverMap[d.driver_number] = { name: d.name_acronym, color: `#${d.team_colour}` };
-        });
+        try {
+            // Get Driver Info
+            const dRes = await fetch('https://api.openf1.org/v1/drivers?session_key=latest');
+            const dData = await dRes.json();
+            dData.forEach(d => {
+                driverMap[d.driver_number] = { name: d.name_acronym, color: `#${d.team_colour}` };
+            });
 
-        // 2. Populate Archive
-        const sRes = await fetch('https://api.openf1.org/v1/sessions?year=2026');
-        const sData = await sRes.json();
-        const select = document.getElementById('archive');
-        sData.reverse().slice(0, 10).forEach(s => {
-            let opt = document.createElement('option');
-            opt.value = s.session_key;
-            opt.innerHTML = `${s.location} - ${s.session_name}`;
-            select.appendChild(opt);
-        });
+            // Populate Archive Dropdown
+            const sRes = await fetch('https://api.openf1.org/v1/sessions?year=2026');
+            const sData = await sRes.json();
+            const select = document.getElementById('archive');
+            
+            // Reverse to show newest first, grab the last 15 sessions
+            sData.reverse().slice(0, 15).forEach(s => {
+                let opt = document.createElement('option');
+                opt.value = s.session_key;
+                opt.innerHTML = `${s.location} - ${s.session_name}`;
+                select.appendChild(opt);
+            });
 
-        // 3. Fake News Feed (Since official RSS requires a proxy, we use recent headline logic)
-        document.getElementById('news-items').innerText = "RUSSELL TAKES POLE IN AUSTRALIA! • ANTONELLI IMPRESSES ON DEBUT • HAMILTON STRUGGLES WITH TYRE TEMP • 2026 ENGINE REGS CAUSING PADDOCK DEBATE";
-
-        updateLoop();
-        setInterval(updateLoop, 2000);
+            startLiveMode();
+        } catch (e) { console.error("Initialization Error:", e); }
     }
 
-    async function updateLoop() {
-        // Update Weather
-        const wRes = await fetch('https://api.openf1.org/v1/weather?session_key=latest');
-        const wData = await wRes.json();
-        if(wData.length > 0) {
-            const latestW = wData[wData.length - 1];
-            document.getElementById('temp').innerText = `${latestW.track_temperature}°C`;
-            document.getElementById('rain').innerText = latestW.rainfall == "0" ? "DRY" : "WET";
+    // 2. LIVE MODE LOGIC
+    function startLiveMode() {
+        document.getElementById('mode-badge').innerText = "🔴 LIVE";
+        document.getElementById('mode-badge').style.background = "#e10600";
+        document.getElementById('archive').value = ""; // Reset dropdown
+        
+        if (liveInterval) clearInterval(liveInterval);
+        updateLive(); // Run immediately
+        liveInterval = setInterval(updateLive, 2500); // Loop every 2.5s
+    }
+
+    async function updateLive() {
+        try {
+            // Weather
+            fetch('https://api.openf1.org/v1/weather?session_key=latest').then(res => res.json()).then(wData => {
+                if(wData.length > 0) {
+                    const w = wData[wData.length - 1];
+                    document.getElementById('temp').innerText = `${w.track_temperature}°C`;
+                    document.getElementById('rain').innerText = w.rainfall == "0" ? "DRY" : "WET";
+                }
+            });
+
+            // Positions (Tower)
+            const pRes = await fetch('https://api.openf1.org/v1/position?session_key=latest');
+            const pData = await pRes.json();
+            const latestPos = {};
+            pData.forEach(p => latestPos[p.driver_number] = p);
+            drawTable(Object.values(latestPos), "INTERVAL");
+
+            // Locations (Map)
+            const lRes = await fetch('https://api.openf1.org/v1/location?session_key=latest');
+            const lData = await lRes.json();
+            const latestLoc = {};
+            lData.forEach(l => latestLoc[l.driver_number] = l);
+            drawMap(Object.values(latestLoc));
+        } catch (e) { console.log("Waiting for live session data..."); }
+    }
+
+    // 3. ARCHIVE / HISTORICAL LOGIC
+    async function loadHistorical(sessionKey) {
+        if(!sessionKey) {
+            startLiveMode(); // If they select the top option, go live
+            return;
         }
 
-        // Update Map
-        const lRes = await fetch('https://api.openf1.org/v1/location?session_key=latest');
-        const lData = await lRes.json();
-        const latestLoc = {};
-        lData.forEach(l => latestLoc[l.driver_number] = l);
+        // Stop the live loop!
+        if (liveInterval) clearInterval(liveInterval);
+        document.getElementById('mode-badge').innerText = "⚪ ARCHIVE";
+        document.getElementById('mode-badge').style.background = "#555";
+        document.querySelector('#timing-tower tbody').innerHTML = `<tr><td colspan="3" style="text-align:center;">Fetching historical data...</td></tr>`;
 
+        try {
+            // Fetch final positions for this specific session
+            const pRes = await fetch(`https://api.openf1.org/v1/position?session_key=${sessionKey}`);
+            const pData = await pRes.json();
+            
+            const finalResults = {};
+            pData.forEach(p => {
+                if (!finalResults[p.driver_number] || new Date(p.date) > new Date(finalResults[p.driver_number].date)) {
+                    finalResults[p.driver_number] = p;
+                }
+            });
+            drawTable(Object.values(finalResults), "FINISHED");
+
+            // Map Snapshot (Grab recent locations to give a static image of where they ended up)
+            // Note: Full location history is huge, so we just grab position data to clear the map safely
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#888";
+            ctx.font = "14px Arial";
+            ctx.fillText("Session Concluded", 10, 20);
+
+        } catch (e) {
+            console.error("Archive Load Failed", e);
+        }
+    }
+
+    // 4. DRAWING HELPERS
+    function drawTable(dataArray, statusText) {
+        const sorted = dataArray.sort((a,b) => a.position - b.position);
+        let html = '';
+        sorted.forEach(p => {
+            const d = driverMap[p.driver_number] || { name: `ID:${p.driver_number}`, color: '#666' };
+            html += `<tr>
+                <td class="pos">${p.position}</td>
+                <td><div style="display:flex; align-items:center; gap:8px;">
+                    <div class="team-indicator" style="background:${d.color}"></div>
+                    <b>${d.name}</b>
+                </div></td>
+                <td style="font-family:monospace; color:#aaa;">${statusText}</td>
+            </tr>`;
+        });
+        document.querySelector('#timing-tower tbody').innerHTML = html || '<tr><td colspan="3">No data available for this session.</td></tr>';
+    }
+
+    function drawMap(carPoints) {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        Object.values(latestLoc).forEach(car => {
-            const d = driverMap[car.driver_number] || { name: '??', color: '#fff' };
+        carPoints.forEach(car => {
+            const d = driverMap[car.driver_number] || { name: '?', color: '#fff' };
+            // Adjust the 48 divisor based on the circuit size if dots go off screen
             const x = (car.x / 48) + (canvas.width / 2);
             const y = (car.y / 48) + (canvas.height / 2);
 
@@ -138,35 +228,9 @@
             ctx.font = "bold 9px Arial";
             ctx.fillText(d.name, x + 8, y + 3);
         });
-
-        // Update Tower
-        const pRes = await fetch('https://api.openf1.org/v1/position?session_key=latest');
-        const pData = await pRes.json();
-        const latestPos = {};
-        pData.forEach(p => latestPos[p.driver_number] = p);
-
-        const sorted = Object.values(latestPos).sort((a,b) => a.position - b.position);
-        let towerHtml = '';
-        sorted.forEach(p => {
-            const d = driverMap[p.driver_number] || { name: 'UNK', color: '#333' };
-            towerHtml += `<tr>
-                <td class="pos">${p.position}</td>
-                <td><div style="display:flex; align-items:center; gap:8px;">
-                    <div class="team-indicator" style="background:${d.color}"></div>
-                    <b>${d.name}</b>
-                </div></td>
-                <td style="font-family:monospace; color:#0f0;">INTERVAL</td>
-            </tr>`;
-        });
-        document.querySelector('#timing-tower tbody').innerHTML = towerHtml;
     }
 
-    async function loadHistorical(key) {
-        if(!key) return;
-        // Logic to switch the 'latest' view to a specific session key
-        alert("Loading session " + key + ". The live map will now show the end-of-race snapshot.");
-    }
-
+    // Start App
     init();
 </script>
 </body>
