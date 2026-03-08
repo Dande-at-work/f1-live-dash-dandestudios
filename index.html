@@ -53,7 +53,7 @@
 </header>
 
 <div id="news-ticker">
-    <div class="ticker-content">RUSSELL TAKES POLE • NEW 2026 REGS CAUSING PADDOCK DEBATE • HAMILTON PUSHING HARD IN THE FERRARI</div>
+    <div class="ticker-content">RUSSELL TAKES POLE • NEW 2026 REGS CAUSING PADDOCK DEBATE • VERSTAPPEN CRASHED HIS CAR VIOLENTLY AFTER A AXEL PROBLEM BY GOONING TOO HARD • AKSHAY STARTED GOONING JUST NOW • HAMILTON PUSHING HARD IN THE FERRARI • PEOPLE STARTED TURNING GAYS AFTER READING THIS</div>
 </div>
 
 <div class="dashboard">
@@ -85,6 +85,31 @@
     let liveInterval = null; // Stores the timer so we can stop it
     const canvas = document.getElementById('trackMap');
     const ctx = canvas.getContext('2d');
+        // NEW FUNCTION: Fetch Real F1 Headlines
+    async function fetchF1News() {
+        try {
+            // We use a free proxy to convert an F1 RSS feed into usable data
+            const rssUrl = 'https://www.autosport.com/rss/f1/news/';
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+            
+            const res = await fetch(apiUrl);
+            const data = await res.json();
+            
+            if (data.status === 'ok') {
+                // Grab the top 5 article titles and make them uppercase
+                const headlines = data.items.slice(0, 5).map(item => item.title.toUpperCase());
+                
+                // Join them together with a bullet point
+                let tickerText = headlines.join(' ••• ');
+                
+                // Update the HTML on the screen
+                document.querySelector('.ticker-content').innerText = tickerText;
+            }
+        } catch (e) {
+            console.log("Could not load live news, keeping placeholders.");
+        }
+    }
+
 
     // 1. INITIALIZE EVERYTHING
     async function init() {
